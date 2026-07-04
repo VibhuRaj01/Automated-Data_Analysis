@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>{{ report_title }}</title>
+<style>
+  :root {
+    --ink: #1a1d23;
+    --muted: #5b6270;
+    --line: #e3e6eb;
+    --bg: #f7f8fa;
+    --card: #ffffff;
+    --accent: #2f5dff;
+    --accent-soft: #eef1ff;
+    --numeric: #2f6fed;
+    --categorical: #1f9d6b;
+    --datetime: #8b5cf6;
+    --other: #8a8f98;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.55;
+  }
+  .page { max-width: 960px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  header.report-header {
+    background: linear-gradient(135deg, #1a1d23, #2f5dff);
+    color: #fff;
+    padding: 48px 24px;
+    margin-bottom: 32px;
+  }
+  header.report-header .inner { max-width: 960px; margin: 0 auto; }
+  header.report-header h1 { margin: 0 0 8px; font-size: 28px; }
+  header.report-header p { margin: 0; opacity: 0.85; font-size: 14px; }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  h2.section-title {
+    font-size: 20px;
+    margin: 0 0 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--line);
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  .stat-box {
+    background: var(--accent-soft);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .stat-box .value { font-size: 22px; font-weight: 700; color: var(--accent); }
+  .stat-box .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+  table.col-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 16px; }
+  table.col-table th, table.col-table td {
+    text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line);
+  }
+  table.col-table th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 11px; font-weight: 600; color: #fff;
+  }
+  .badge.numeric { background: var(--numeric); }
+  .badge.categorical { background: var(--categorical); }
+  .badge.datetime { background: var(--datetime); }
+  .badge.other { background: var(--other); }
+
+  nav.toc { }
+  nav.toc ol { margin: 0; padding-left: 20px; }
+  nav.toc li { margin-bottom: 6px; }
+  nav.toc a { color: var(--accent); text-decoration: none; }
+  nav.toc a:hover { text-decoration: underline; }
+
+  section.analysis {
+    page-break-inside: avoid;
+  }
+  section.analysis .meta {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+  }
+  section.analysis .meta span {
+    font-size: 12px; padding: 3px 10px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent); font-weight: 600;
+  }
+  section.analysis .reason {
+    color: var(--muted); font-size: 14px; margin-bottom: 16px;
+  }
+  section.analysis img.chart {
+    max-width: 100%; border: 1px solid var(--line); border-radius: 8px; display: block; margin-bottom: 16px;
+  }
+  section.analysis .chart-missing {
+    background: #fff4f2; border: 1px dashed #e0a79a; color: #a13d2b;
+    border-radius: 8px; padding: 16px; margin-bottom: 16px; font-size: 13px;
+  }
+  section.analysis .insights ul { margin: 0; padding-left: 20px; }
+  section.analysis .insights li { margin-bottom: 6px; }
+  section.analysis .insights p { margin: 0; }
+
+  footer {
+    text-align: center; color: var(--muted); font-size: 12px; margin-top: 40px;
+  }
+
+  @media print {
+    header.report-header { background: none; color: var(--ink); border-bottom: 2px solid var(--ink); }
+    .card { border: 1px solid #ccc; }
+    body { background: #fff; }
+  }
+</style>
+</head>
+<body>
+
+<header class="report-header">
+  <div class="inner">
+    <h1>{{ report_title }}</h1>
+    <p>Dataset: {{ dataset_name }} &middot; Generated {{ generated_at }}</p>
+  </div>
+</header>
+
+<div class="page">
+
+  <div class="card">
+    <h2 class="section-title">Dataset Overview</h2>
+    <div class="stat-grid">
+      <div class="stat-box"><div class="value">{{ dataset.rows }}</div><div class="label">Rows</div></div>
+      <div class="stat-box"><div class="value">{{ dataset.columns }}</div><div class="label">Columns</div></div>
+      <div class="stat-box"><div class="value">{{ dataset.duplicates }}</div><div class="label">Duplicate Rows</div></div>
+      <div class="stat-box"><div class="value">{{ dataset.memory_mb }} MB</div><div class="label">Memory</div></div>
+    </div>
+    <table class="col-table">
+      <thead>
+        <tr><th>Column</th><th>Type</th><th>Semantic Type</th><th>Missing</th><th>Unique</th></tr>
+      </thead>
+      <tbody>
+        {% for col in columns %}
+        <tr>
+          <td>{{ col.name }}</td>
+          <td>{{ col.dtype }}</td>
+          <td><span class="badge {{ col.semantic_type if col.semantic_type in ('numeric','categorical','datetime') else 'other' }}">{{ col.semantic_type }}</span></td>
+          <td>{{ col.missing }}</td>
+          <td>{{ col.unique }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2 class="section-title">Contents</h2>
+    <nav class="toc">
+      <ol>
+        {% for item in items %}
+        <li><a href="#analysis-{{ item.anchor }}">{{ item.analysis.title }}</a></li>
+        {% endfor %}
+      </ol>
+    </nav>
+  </div>
+
+  {% for item in items %}
+  <div class="card">
+    <section class="analysis" id="analysis-{{ item.anchor }}">
+      <h2 class="section-title">{{ item.analysis.priority }}. {{ item.analysis.title }}</h2>
+      <div class="meta">
+        <span>{{ item.analysis.analysis_type }}</span>
+        <span>{{ item.analysis.chart }} chart</span>
+        <span>{{ item.analysis.columns | join(', ') }}</span>
+      </div>
+      {% if item.analysis.reason %}
+      <p class="reason">{{ item.analysis.reason }}</p>
+      {% endif %}
+
+      {% if item.chart_data_uri %}
+      <img class="chart" src="{{ item.chart_data_uri }}" alt="{{ item.analysis.title }}">
+      {% elif item.chart_href %}
+      <img class="chart" src="{{ item.chart_href }}" alt="{{ item.analysis.title }}">
+      {% else %}
+      <div class="chart-missing">Chart image not found for this analysis ({{ item.chart_path }}).</div>
+      {% endif %}
+
+      <div class="insights">
+        {% if item.insight_html %}
+          {{ item.insight_html | safe }}
+        {% else %}
+          <p><em>No insight text available for this analysis.</em></p>
+        {% endif %}
+      </div>
+    </section>
+  </div>
+  {% endfor %}
+
+  <footer>
+    Generated automatically by the Autonomous Data Analyst pipeline &middot; {{ generated_at }}
+  </footer>
+
+</div>
+</body>
+</html>
