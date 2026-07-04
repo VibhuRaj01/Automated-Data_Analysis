@@ -188,12 +188,6 @@ outputs/
 
 ------------------------------------------------------------------------
 
-## License
-
-Choose an appropriate license (MIT, Apache-2.0, etc.) before publishing.
-
-------------------------------------------------------------------------
-
 ## Author
 
 **Vibhu Raj**
